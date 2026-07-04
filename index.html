@@ -394,7 +394,7 @@
             <span class="ios-chevron">›</span>
           </a>
         </div>
-        <p class="microcopy">Open this page on your own phone's browser (not a laptop, not a preview) with a UPI app installed — tapping a row here pops up the app asking to confirm the amount and pay <span id="upiIdInline">sudheeshsaandy-2@okaxis</span>. GPay's own link is flaky on newer app versions — if it doesn't open GPay directly within a second, it automatically retries with the generic UPI link, which will either open GPay (if it's your default) or show an app picker.</p>
+        <p class="microcopy">Open this page on your own phone's browser (not a laptop, not a preview) with a UPI app installed — tapping a row here pops up the app asking to confirm the amount and pay <span id="upiIdInline">sudheeshsaandy-2@okaxis</span>. On iPhone, all four rows open your phone's default UPI app — Apple doesn't let apps show a chooser or claim separate GPay/PhonePe/Paytm links the way Android does, so the app you land in may not match the row you tapped. On Android, each row targets that specific app, falling back to a general UPI link if it's not installed.</p>
       </div>
 
       <div class="actions" style="margin-top:14px;">
@@ -629,12 +629,28 @@ function buildAppUri(scheme, path, amount, payee, note){
   return uri;
 }
 
+const isIOS = /iP(hone|od|ad)/.test(navigator.platform) ||
+  (navigator.userAgent.includes('Macintosh') && navigator.maxTouchPoints > 1);
+
 function updatePayNowLinks(amount, payee, note){
-  btnGpay.href = buildAppUri('tez', 'upi/pay', amount, payee, note);
-  btnGpay.dataset.fallback = buildAppUri('upi', 'pay', amount, payee, note);
-  btnPhonepe.href = buildAppUri('phonepe', 'pay', amount, payee, note);
-  btnPaytm.href = buildAppUri('paytmmp', 'pay', amount, payee, note);
-  btnAnyUpi.href = buildAppUri('upi', 'pay', amount, payee, note);
+  const genericUri = buildAppUri('upi', 'pay', amount, payee, note);
+  if(isIOS){
+    // iOS only lets one installed app claim a given custom scheme, and there's
+    // no chooser like Android's — so app-specific links (tez://, phonepe://,
+    // paytmmp://) are unreliable here. The generic upi:// link is what every
+    // UPI app on iOS is required to register for, so it's the one that actually works.
+    btnGpay.href = genericUri;
+    btnGpay.dataset.fallback = genericUri;
+    btnPhonepe.href = genericUri;
+    btnPaytm.href = genericUri;
+    btnAnyUpi.href = genericUri;
+  } else {
+    btnGpay.href = buildAppUri('tez', 'upi/pay', amount, payee, note);
+    btnGpay.dataset.fallback = genericUri;
+    btnPhonepe.href = buildAppUri('phonepe', 'pay', amount, payee, note);
+    btnPaytm.href = buildAppUri('paytmmp', 'pay', amount, payee, note);
+    btnAnyUpi.href = genericUri;
+  }
 }
 
 function enableButtons(){
