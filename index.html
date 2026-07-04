@@ -206,10 +206,59 @@
   .btn-share{background:#25D366; color:#06210F;}
   .btn-download{background:var(--surface-2); color:var(--off); border:1px solid var(--line) !important;}
   .btn-copy{background:transparent; color:var(--gold-pale); border:1px solid var(--line) !important;}
-  .btn-gpay{background:#1F1F1F; color:#F5F1E8; border:1px solid #4285F4 !important;}
-  .btn-phonepe{background:#1F1F1F; color:#F5F1E8; border:1px solid #5F259F !important;}
-  .btn-paytm{background:#1F1F1F; color:#F5F1E8; border:1px solid #00BAF2 !important;}
-  .btn-anyupi{background:var(--gold); color:#241800;}
+  .ios-list{
+    width:100%;
+    max-width:340px;
+    background:rgba(255,255,255,0.035);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:14px;
+    overflow:hidden;
+    backdrop-filter:blur(6px);
+  }
+  .ios-row{
+    display:flex;
+    align-items:center;
+    gap:13px;
+    padding:12px 16px;
+    text-decoration:none;
+    color:var(--off);
+    position:relative;
+    -webkit-tap-highlight-color:transparent;
+    transition:background 0.12s ease;
+  }
+  .ios-row:not(:last-child)::after{
+    content:'';
+    position:absolute;
+    left:53px; right:16px; bottom:0;
+    height:1px;
+    background:rgba(255,255,255,0.08);
+  }
+  .ios-row:active{background:rgba(255,255,255,0.06);}
+  .ios-row.is-disabled{opacity:0.35; pointer-events:none;}
+  .ios-icon{
+    width:32px; height:32px;
+    border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .ios-icon.icon-gpay{background:#FFFFFF;}
+  .ios-icon.icon-phonepe{background:#5F259F;}
+  .ios-icon.icon-paytm{background:#00BAF2;}
+  .ios-icon.icon-upi{background:var(--gold);}
+  .ios-label{
+    flex:1;
+    font-family:-apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    font-size:16px;
+    font-weight:500;
+    letter-spacing:-0.01em;
+  }
+  .ios-sub{
+    font-family:-apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    font-size:12px;
+    color:var(--muted);
+    margin-top:1px;
+  }
+  .ios-chevron{color:var(--muted); font-size:19px; font-weight:400;}
   .microcopy{
     color:var(--muted);
     font-size:12px;
@@ -310,16 +359,41 @@
         <button class="action btn-download" id="btnDownload" disabled>Download QR image</button>
       </div>
       <p class="microcopy" id="shareHelp">Opens your phone's share sheet with the actual QR image — pick WhatsApp there to send it as a photo, not a link.</p>
+      <p class="microcopy" style="color:#E0A93A;">Heads up: GPay/PhonePe cap payments made by <em>uploading a saved QR image</em> at ₹2,000 — that's an app rule, not a broken code. For bigger amounts, the payer should open their UPI app's live camera scanner and point it at this screen instead of uploading the photo.</p>
 
       <div class="paynow-block">
         <p class="paynow-title">Or pay now on this device</p>
-        <div class="actions">
-          <a class="action btn-gpay" id="btnGpay" href="#">Pay with GPay</a>
-          <a class="action btn-phonepe" id="btnPhonepe" href="#">Pay with PhonePe</a>
-          <a class="action btn-paytm" id="btnPaytm" href="#">Pay with Paytm</a>
-          <a class="action btn-anyupi" id="btnAnyUpi" href="#">Pay with any UPI app</a>
+        <div class="ios-list">
+          <a class="ios-row is-disabled" id="btnGpay" href="#">
+            <span class="ios-icon icon-gpay">
+              <svg width="17" height="17" viewBox="0 0 18 18"><circle cx="5" cy="5" r="3.1" fill="#4285F4"/><circle cx="13" cy="5" r="3.1" fill="#EA4335"/><circle cx="5" cy="13" r="3.1" fill="#FBBC05"/><circle cx="13" cy="13" r="3.1" fill="#34A853"/></svg>
+            </span>
+            <span class="ios-label">GPay</span>
+            <span class="ios-chevron">›</span>
+          </a>
+          <a class="ios-row is-disabled" id="btnPhonepe" href="#">
+            <span class="ios-icon icon-phonepe">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M13.5 2 4.5 13.5h6.2L9.2 22 19.5 9.5h-6.7z"/></svg>
+            </span>
+            <span class="ios-label">PhonePe</span>
+            <span class="ios-chevron">›</span>
+          </a>
+          <a class="ios-row is-disabled" id="btnPaytm" href="#">
+            <span class="ios-icon icon-paytm">
+              <span style="color:#fff; font-weight:700; font-size:16px; font-family:Inter,sans-serif;">₹</span>
+            </span>
+            <span class="ios-label">Paytm</span>
+            <span class="ios-chevron">›</span>
+          </a>
+          <a class="ios-row is-disabled" id="btnAnyUpi" href="#">
+            <span class="ios-icon icon-upi">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#241800" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h9M7 7l2.6-2.6M7 7l2.6 2.6"/><path d="M17 17H8M17 17l-2.6-2.6M17 17l-2.6 2.6"/></svg>
+            </span>
+            <span class="ios-label">Any UPI app</span>
+            <span class="ios-chevron">›</span>
+          </a>
         </div>
-        <p class="microcopy">Open this page on your own phone's browser (not a laptop, not a preview) with a UPI app installed — tapping a button here pops up the app asking to confirm the amount and pay <span id="upiIdInline">sudheeshsaandy-2@okaxis</span>.</p>
+        <p class="microcopy">Open this page on your own phone's browser (not a laptop, not a preview) with a UPI app installed — tapping a row here pops up the app asking to confirm the amount and pay <span id="upiIdInline">sudheeshsaandy-2@okaxis</span>. GPay's own link is flaky on newer app versions — if it doesn't open GPay directly within a second, it automatically retries with the generic UPI link, which will either open GPay (if it's your default) or show an app picker.</p>
       </div>
 
       <div class="actions" style="margin-top:14px;">
@@ -374,14 +448,17 @@ function showToast(msg){
   setTimeout(() => toastEl.classList.remove('show'), 1800);
 }
 
+function upiEncode(str){
+  // Encode for UPI query values but keep '@' literal — some UPI app
+  // scanners read pa= with a plain string match instead of full URL
+  // decoding, so an encoded '@' (%40) breaks VPA recognition entirely.
+  return encodeURIComponent(str).replace(/%40/g, '@');
+}
+
 function buildUpiUri(amount, payee, note){
-  const params = new URLSearchParams();
-  params.set('pa', UPI_ID);
-  params.set('pn', payee || 'AMRAP FITNESS');
-  params.set('am', amount);
-  params.set('cu', 'INR');
-  if(note) params.set('tn', note);
-  return 'upi://pay?' + params.toString();
+  let uri = `upi://pay?pa=${UPI_ID}&pn=${upiEncode(payee || 'AMRAP FITNESS')}&am=${encodeURIComponent(amount)}&cu=INR`;
+  if(note) uri += `&tn=${upiEncode(note)}`;
+  return uri;
 }
 
 function roundRect(c, x, y, w, h, r){
@@ -546,17 +623,14 @@ function drawTicket(amount, payee, note){
 }
 
 function buildAppUri(scheme, path, amount, payee, note){
-  const params = new URLSearchParams();
-  params.set('pa', UPI_ID);
-  params.set('pn', payee || 'AMRAP FITNESS');
-  params.set('am', amount);
-  params.set('cu', 'INR');
-  if(note) params.set('tn', note);
-  return `${scheme}://${path}?${params.toString()}`;
+  let uri = `${scheme}://${path}?pa=${UPI_ID}&pn=${upiEncode(payee || 'AMRAP FITNESS')}&am=${encodeURIComponent(amount)}&cu=INR`;
+  if(note) uri += `&tn=${upiEncode(note)}`;
+  return uri;
 }
 
 function updatePayNowLinks(amount, payee, note){
   btnGpay.href = buildAppUri('tez', 'upi/pay', amount, payee, note);
+  btnGpay.dataset.fallback = buildAppUri('upi', 'pay', amount, payee, note);
   btnPhonepe.href = buildAppUri('phonepe', 'pay', amount, payee, note);
   btnPaytm.href = buildAppUri('paytmmp', 'pay', amount, payee, note);
   btnAnyUpi.href = buildAppUri('upi', 'pay', amount, payee, note);
@@ -633,6 +707,21 @@ btnShare.addEventListener('click', async () => {
   }catch(err){
     if(err.name !== 'AbortError'){ showToast('Could not open share sheet — try Download instead'); }
   }
+});
+
+btnGpay.addEventListener('click', (e) => {
+  if(btnGpay.classList.contains('is-disabled')) { e.preventDefault(); return; }
+  e.preventDefault();
+  const fallback = btnGpay.dataset.fallback;
+  const start = Date.now();
+  window.location.href = btnGpay.href;
+  setTimeout(() => {
+    // If we're still on the page and not much time has passed in an app switch,
+    // the tez:// link likely failed to open GPay — try the generic UPI intent instead.
+    if(document.visibilityState === 'visible' && Date.now() - start < 2500){
+      window.location.href = fallback;
+    }
+  }, 900);
 });
 
 btnCopy.addEventListener('click', async () => {
