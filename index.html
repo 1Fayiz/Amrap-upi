@@ -201,9 +201,37 @@
   button.action:active{transform:scale(0.98);}
   button.action:disabled{opacity:0.4; cursor:not-allowed;}
   .btn-whatsapp{background:#25D366; color:#06210F;}
-  .btn-share{background:var(--gold); color:#241800;}
+  .btn-share{background:#25D366; color:#06210F;}
   .btn-download{background:var(--surface-2); color:var(--off); border:1px solid var(--line) !important;}
   .btn-copy{background:transparent; color:var(--gold-pale); border:1px solid var(--line) !important;}
+  .btn-gpay{background:#1F1F1F; color:#F5F1E8; border:1px solid #4285F4 !important;}
+  .btn-phonepe{background:#1F1F1F; color:#F5F1E8; border:1px solid #5F259F !important;}
+  .btn-paytm{background:#1F1F1F; color:#F5F1E8; border:1px solid #00BAF2 !important;}
+  .btn-anyupi{background:var(--gold); color:#241800;}
+  .microcopy{
+    color:var(--muted);
+    font-size:12px;
+    text-align:center;
+    max-width:340px;
+    margin:10px auto 0;
+    line-height:1.5;
+  }
+  .paynow-block{
+    width:100%;
+    max-width:340px;
+    margin-top:26px;
+    padding-top:22px;
+    border-top:1px dashed var(--line);
+  }
+  .paynow-title{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--gold-pale);
+    text-align:center;
+    margin:0 0 12px;
+  }
   #qrHidden{position:absolute; left:-9999px; top:-9999px;}
   .toast{
     position:fixed; bottom:24px; left:50%;
@@ -274,10 +302,25 @@
     <div class="panel card-panel">
       <canvas id="ticketCanvas" width="720" height="960"></canvas>
       <p class="hint" id="hint">Enter an amount to generate the payment card.</p>
+
       <div class="actions">
-        <button class="action btn-whatsapp" id="btnWhatsapp" disabled>Send on WhatsApp</button>
-        <button class="action btn-share" id="btnShare" disabled>Share image…</button>
-        <button class="action btn-download" id="btnDownload" disabled>Download image</button>
+        <button class="action btn-share" id="btnShare" disabled>Share QR to WhatsApp</button>
+        <button class="action btn-download" id="btnDownload" disabled>Download QR image</button>
+      </div>
+      <p class="microcopy" id="shareHelp">Opens your phone's share sheet with the actual QR image — pick WhatsApp there to send it as a photo, not a link.</p>
+
+      <div class="paynow-block">
+        <p class="paynow-title">Or pay now on this device</p>
+        <div class="actions">
+          <button class="action btn-gpay" id="btnGpay" disabled>Pay with GPay</button>
+          <button class="action btn-phonepe" id="btnPhonepe" disabled>Pay with PhonePe</button>
+          <button class="action btn-paytm" id="btnPaytm" disabled>Pay with Paytm</button>
+          <button class="action btn-anyupi" id="btnAnyUpi" disabled>Pay with any UPI app</button>
+        </div>
+        <p class="microcopy">These only work when opened on the payer's own phone with the app installed — mainly on Android. Use the QR share above to collect payment from someone else over WhatsApp.</p>
+      </div>
+
+      <div class="actions" style="margin-top:14px;">
         <button class="action btn-copy" id="btnCopy" disabled>Copy UPI link</button>
       </div>
     </div>
@@ -297,10 +340,13 @@ const noteEl = document.getElementById('note');
 const canvas = document.getElementById('ticketCanvas');
 const ctx = canvas.getContext('2d');
 const hint = document.getElementById('hint');
-const btnWhatsapp = document.getElementById('btnWhatsapp');
 const btnShare = document.getElementById('btnShare');
 const btnDownload = document.getElementById('btnDownload');
 const btnCopy = document.getElementById('btnCopy');
+const btnGpay = document.getElementById('btnGpay');
+const btnPhonepe = document.getElementById('btnPhonepe');
+const btnPaytm = document.getElementById('btnPaytm');
+const btnAnyUpi = document.getElementById('btnAnyUpi');
 const toastEl = document.getElementById('toast');
 
 let currentUpiUri = "";
@@ -498,17 +544,23 @@ function drawTicket(amount, payee, note){
 }
 
 function enableButtons(){
-  btnWhatsapp.disabled = false;
   btnShare.disabled = false;
   btnDownload.disabled = false;
   btnCopy.disabled = false;
+  btnGpay.disabled = false;
+  btnPhonepe.disabled = false;
+  btnPaytm.disabled = false;
+  btnAnyUpi.disabled = false;
 }
 
 function disableButtons(){
-  btnWhatsapp.disabled = true;
   btnShare.disabled = true;
   btnDownload.disabled = true;
   btnCopy.disabled = true;
+  btnGpay.disabled = true;
+  btnPhonepe.disabled = true;
+  btnPaytm.disabled = true;
+  btnAnyUpi.disabled = true;
 }
 
 function updateCard(){
@@ -558,21 +610,38 @@ btnShare.addEventListener('click', async () => {
         title: 'AMRAP FITNESS — Pay via UPI',
         text: `Pay ₹${amountEl.value} to ${payeeEl.value || 'AMRAP FITNESS'} via UPI: ${UPI_ID}`
       });
+      showToast('Share sheet opened — pick WhatsApp to send the QR photo');
     } else {
-      showToast('Sharing images isn\'t supported here — try Download instead');
+      const text = `Pay ₹${amountEl.value} to ${payeeEl.value || 'AMRAP FITNESS'} via UPI\nUPI ID: ${UPI_ID}\n${currentUpiUri}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+      showToast('This browser can\'t attach images to WhatsApp — sent the payment text instead. Download the QR and attach it manually.');
     }
   }catch(err){
-    if(err.name !== 'AbortError'){ showToast('Could not open share sheet — try Download'); }
+    if(err.name !== 'AbortError'){ showToast('Could not open share sheet — try Download instead'); }
   }
 });
 
-btnWhatsapp.addEventListener('click', () => {
+function openPayNow(scheme){
   const amount = amountEl.value;
-  const text = `Pay ₹${amount} to ${payeeEl.value || 'AMRAP FITNESS'} via UPI\nUPI ID: ${UPI_ID}\n${currentUpiUri}`;
-  const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-  window.open(url, '_blank');
-  showToast('Opening WhatsApp — attach the downloaded image too');
-});
+  const payee = payeeEl.value.trim() || 'AMRAP FITNESS';
+  const note = noteEl.value.trim();
+  const params = new URLSearchParams();
+  params.set('pa', UPI_ID);
+  params.set('pn', payee);
+  params.set('am', amount);
+  params.set('cu', 'INR');
+  if(note) params.set('tn', note);
+  const uri = `${scheme}://pay?${params.toString()}`;
+  window.location.href = uri;
+  setTimeout(() => {
+    showToast('If nothing opened, that app isn\'t installed on this device');
+  }, 1200);
+}
+
+btnGpay.addEventListener('click', () => openPayNow('tez'));
+btnPhonepe.addEventListener('click', () => openPayNow('phonepe'));
+btnPaytm.addEventListener('click', () => openPayNow('paytmmp'));
+btnAnyUpi.addEventListener('click', () => openPayNow('upi'));
 
 btnCopy.addEventListener('click', async () => {
   try{
