@@ -200,6 +200,8 @@
   }
   button.action:active{transform:scale(0.98);}
   button.action:disabled{opacity:0.4; cursor:not-allowed;}
+  a.action{text-decoration:none;}
+  .action.is-disabled{opacity:0.4; pointer-events:none;}
   .btn-whatsapp{background:#25D366; color:#06210F;}
   .btn-share{background:#25D366; color:#06210F;}
   .btn-download{background:var(--surface-2); color:var(--off); border:1px solid var(--line) !important;}
@@ -312,12 +314,12 @@
       <div class="paynow-block">
         <p class="paynow-title">Or pay now on this device</p>
         <div class="actions">
-          <button class="action btn-gpay" id="btnGpay" disabled>Pay with GPay</button>
-          <button class="action btn-phonepe" id="btnPhonepe" disabled>Pay with PhonePe</button>
-          <button class="action btn-paytm" id="btnPaytm" disabled>Pay with Paytm</button>
-          <button class="action btn-anyupi" id="btnAnyUpi" disabled>Pay with any UPI app</button>
+          <a class="action btn-gpay" id="btnGpay" href="#">Pay with GPay</a>
+          <a class="action btn-phonepe" id="btnPhonepe" href="#">Pay with PhonePe</a>
+          <a class="action btn-paytm" id="btnPaytm" href="#">Pay with Paytm</a>
+          <a class="action btn-anyupi" id="btnAnyUpi" href="#">Pay with any UPI app</a>
         </div>
-        <p class="microcopy">These only work when opened on the payer's own phone with the app installed — mainly on Android. Use the QR share above to collect payment from someone else over WhatsApp.</p>
+        <p class="microcopy">Open this page on your own phone's browser (not a laptop, not a preview) with a UPI app installed — tapping a button here pops up the app asking to confirm the amount and pay <span id="upiIdInline">sudheeshsaandy-2@okaxis</span>.</p>
       </div>
 
       <div class="actions" style="margin-top:14px;">
@@ -543,24 +545,35 @@ function drawTicket(amount, payee, note){
   });
 }
 
+function buildAppUri(scheme, path, amount, payee, note){
+  const params = new URLSearchParams();
+  params.set('pa', UPI_ID);
+  params.set('pn', payee || 'AMRAP FITNESS');
+  params.set('am', amount);
+  params.set('cu', 'INR');
+  if(note) params.set('tn', note);
+  return `${scheme}://${path}?${params.toString()}`;
+}
+
+function updatePayNowLinks(amount, payee, note){
+  btnGpay.href = buildAppUri('tez', 'upi/pay', amount, payee, note);
+  btnPhonepe.href = buildAppUri('phonepe', 'pay', amount, payee, note);
+  btnPaytm.href = buildAppUri('paytmmp', 'pay', amount, payee, note);
+  btnAnyUpi.href = buildAppUri('upi', 'pay', amount, payee, note);
+}
+
 function enableButtons(){
   btnShare.disabled = false;
   btnDownload.disabled = false;
   btnCopy.disabled = false;
-  btnGpay.disabled = false;
-  btnPhonepe.disabled = false;
-  btnPaytm.disabled = false;
-  btnAnyUpi.disabled = false;
+  [btnGpay, btnPhonepe, btnPaytm, btnAnyUpi].forEach(a => a.classList.remove('is-disabled'));
 }
 
 function disableButtons(){
   btnShare.disabled = true;
   btnDownload.disabled = true;
   btnCopy.disabled = true;
-  btnGpay.disabled = true;
-  btnPhonepe.disabled = true;
-  btnPaytm.disabled = true;
-  btnAnyUpi.disabled = true;
+  [btnGpay, btnPhonepe, btnPaytm, btnAnyUpi].forEach(a => { a.classList.add('is-disabled'); a.href = '#'; });
 }
 
 function updateCard(){
@@ -577,6 +590,7 @@ function updateCard(){
   }
 
   currentUpiUri = buildUpiUri(amount, payee, note);
+  updatePayNowLinks(amount, payee, note);
   hint.textContent = 'Card ready — download or share below.';
   drawTicket(amount, payee, note);
 }
@@ -621,28 +635,6 @@ btnShare.addEventListener('click', async () => {
   }
 });
 
-function openPayNow(scheme){
-  const amount = amountEl.value;
-  const payee = payeeEl.value.trim() || 'AMRAP FITNESS';
-  const note = noteEl.value.trim();
-  const params = new URLSearchParams();
-  params.set('pa', UPI_ID);
-  params.set('pn', payee);
-  params.set('am', amount);
-  params.set('cu', 'INR');
-  if(note) params.set('tn', note);
-  const uri = `${scheme}://pay?${params.toString()}`;
-  window.location.href = uri;
-  setTimeout(() => {
-    showToast('If nothing opened, that app isn\'t installed on this device');
-  }, 1200);
-}
-
-btnGpay.addEventListener('click', () => openPayNow('tez'));
-btnPhonepe.addEventListener('click', () => openPayNow('phonepe'));
-btnPaytm.addEventListener('click', () => openPayNow('paytmmp'));
-btnAnyUpi.addEventListener('click', () => openPayNow('upi'));
-
 btnCopy.addEventListener('click', async () => {
   try{
     await navigator.clipboard.writeText(currentUpiUri);
@@ -651,6 +643,7 @@ btnCopy.addEventListener('click', async () => {
 });
 
 drawEmptyState();
+disableButtons();
 </script>
 </body>
 </html>
